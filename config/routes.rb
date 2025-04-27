@@ -5,6 +5,7 @@ Rails.application.routes.draw do
   namespace :api do
     namespace :v1 do
       get 'current_user', to: 'users#current'
+      resources :movies, only: [:index, :show, :create, :update, :destroy]
     end
   end
 end
