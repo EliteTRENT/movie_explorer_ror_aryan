@@ -1,5 +1,5 @@
 ActiveAdmin.register Movie do
-  permit_params :title, :genre, :release_year, :director, :duration, :description, :premium, :poster, :banner
+  permit_params :title, :genre, :release_year, :director, :duration, :rating, :description, :premium, :poster, :banner
 
   index do
     selectable_column
@@ -9,6 +9,7 @@ ActiveAdmin.register Movie do
     column :release_year
     column :director
     column :duration
+    column :rating
     column :description
     column :premium
     column :poster do |movie|
@@ -39,6 +40,7 @@ ActiveAdmin.register Movie do
   filter :release_year
   filter :director
   filter :duration
+  filter :rating
   filter :premium
 
   form do |f|
@@ -48,6 +50,7 @@ ActiveAdmin.register Movie do
       f.input :release_year
       f.input :director
       f.input :duration
+      f.input :rating
       f.input :description
       f.input :premium
       f.input :poster, as: :file
