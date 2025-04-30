@@ -22,6 +22,13 @@ gem "sprockets-rails"
 gem "stimulus-rails"
 gem "turbo-rails"
 gem "tzinfo-data", platforms: %i[ windows jruby ]
+gem 'rspec-rails'
+gem 'rswag' 
+gem 'rswag-specs'
+gem 'rswag-api'
+gem 'rswag-ui'
+gem 'factory_bot_rails' 
+gem 'faker' 
 
 group :development, :test do
   gem "debug", platforms: %i[ mri windows ]

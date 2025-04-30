@@ -1,0 +1,78 @@
+---
+openapi: 3.0.1
+info:
+  title: API V1
+  version: v1
+  description: API for managing users and movies
+paths:
+  "/users":
+    post:
+      summary: User registration
+      tags:
+      - Authentication
+      parameters: []
+      responses:
+        '201':
+          description: User created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: integer
+                  name:
+                    type: string
+                  email:
+                    type: string
+                  mobile_number:
+                    type: string
+        '422':
+          description: Invalid registration request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                user:
+                  type: object
+                  properties:
+                    name:
+                      type: string
+                    email:
+                      type: string
+                    password:
+                      type: string
+                    password_confirmation:
+                      type: string
+                    mobile_number:
+                      type: string
+                  required:
+                  - name
+                  - email
+                  - password
+                  - password_confirmation
+                  - mobile_number
+              required:
+              - user
+servers:
+- url: http://localhost:3000
+  description: Local server
+- url: https://movie-explorer-app.onrender.com
+  description: Production server
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
