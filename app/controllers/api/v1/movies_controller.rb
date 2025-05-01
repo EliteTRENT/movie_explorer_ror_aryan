@@ -48,10 +48,7 @@ module Api
         attach_files(movie)
 
         if movie.save
-          render json: {
-            message: "Movie added successfully",
-            movie: ::MovieSerializer.new(movie).serializable_hash
-          }, status: :created
+          render json: { message: "Movie added successfully", movie: ::MovieSerializer.new(movie).serializable_hash }, status: :created
         else
           render json: { errors: movie.errors.full_messages }, status: :unprocessable_entity
         end
@@ -84,10 +81,7 @@ module Api
       private
 
       def movie_params
-        params.require(:movie).permit(
-          :title, :genre, :release_year, :rating, :director,
-          :duration, :description, :premium, :poster, :banner
-        )
+        params.require(:movie).permit(:title, :genre, :release_year, :rating, :director, :duration, :description, :premium, :poster, :banner)
       end
 
       def attach_files(movie)

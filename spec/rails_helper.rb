@@ -1,6 +1,7 @@
 # This file is copied to spec/ when you run 'rails generate rspec:install'
 require 'spec_helper'
 require 'factory_bot'
+require 'devise'
 ENV['RAILS_ENV'] ||= 'test'
 require_relative '../config/environment'
 # Prevent database truncation if the environment is production
@@ -70,4 +71,17 @@ RSpec.configure do |config|
   # config.filter_gems_from_backtrace("gem name")
   # 
   config.include FactoryBot::Syntax::Methods
+  # spec/rails_helper.rb
+
+  # Cleanup
+  config.after(:suite) do
+    # Clean up ActiveStorage blobs
+    ActiveStorage::Blob.all.each do |blob|
+      blob.service.delete(blob.key) if blob.service.exist?(blob.key)
+    end
+  end
+
+  # Devise helpers
+  config.include Devise::Test::IntegrationHelpers, type: :request
+  config.use_transactional_fixtures = true
 end

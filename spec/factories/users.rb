@@ -4,7 +4,6 @@ FactoryBot.define do
     email { Faker::Internet.unique.email } 
     mobile_number { "+1#{Faker::Number.unique.number(digits: 10)}" } 
     password { 'password123' }
-    password_confirmation { 'password123' }
     role { :user } 
     jti { SecureRandom.uuid } 
 
@@ -14,7 +13,6 @@ FactoryBot.define do
     trait :invalid do
       email { 'invalid' }
       password { '' }
-      password_confirmation { '' }
       name { '' }
       mobile_number { '' }
     end

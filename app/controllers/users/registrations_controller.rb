@@ -29,7 +29,7 @@ class Users::RegistrationsController < Devise::RegistrationsController
   private
 
   def sign_up_params
-    params.require(:user).permit(:email, :password, :password_confirmation, :name, :mobile_number)
+    params.require(:user).permit(:email, :password, :name, :mobile_number)
   end
   def log_request
     Rails.logger.info "Headers: #{request.headers.to_h.inspect}"
