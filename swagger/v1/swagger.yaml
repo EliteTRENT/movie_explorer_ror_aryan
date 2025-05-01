@@ -459,7 +459,7 @@ paths:
 servers:
 - url: http://localhost:3000
   description: Local server
-- url: https://movie-explorer-ror-aalekh-2ewg.onrender.com
+- url: https://movie-explorer-app.onrender.com
   description: Production server
 components:
   securitySchemes:
