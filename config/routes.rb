@@ -8,6 +8,13 @@ Rails.application.routes.draw do
     namespace :v1 do
       get 'current_user', to: 'users#current'
       resources :movies, only: [:index, :show, :create, :update, :destroy]
+      resources :subscriptions, only: [:create] do
+        collection do
+          get 'success'
+          get 'cancel'
+        end
+      end
+      post 'webhooks/stripe', to: 'webhooks#stripe'
     end
   end
 end
