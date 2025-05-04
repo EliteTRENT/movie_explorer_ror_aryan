@@ -2,7 +2,8 @@ module Api
   module V1
     class MoviesController < ApplicationController
       skip_before_action :verify_authenticity_token
-      before_action :authenticate_user!, only: [:create, :show, :update, :destroy]
+      # before_action :authenticate_user!, only: [:create, :show, :update, :destroy]
+      before_action :authenticate_user!, only: [:create, :update, :destroy]
       before_action :ensure_supervisor, only: [:create, :update, :destroy]
 
       def index
@@ -13,7 +14,7 @@ module Api
         end
 
         if params[:genre].present?
-          movies = movies.where(genre: params[:genre])
+          movies = movies.where("genre ~* ?", "\\m#{Regexp.escape(params[:genre])}\\M")
         end
 
         movies = movies.page(params[:page] || 1).per(params[:per_page] || 10)
@@ -34,14 +35,23 @@ module Api
         end
       end
 
+      # def show
+      #   movie = Movie.find_by(id: params[:id])
+      #   if movie
+      #     if can_access_movie?(movie)
+      #       render json: ::MovieSerializer.new(movie).serializable_hash, status: :ok
+      #     else
+      #       render json: { error: 'Access denied. Please upgrade your subscription.' }, status: :forbidden
+      #     end
+      #   else
+      #     render json: { error: "Movie not found" }, status: :not_found
+      #   end
+      # end
+      
       def show
         movie = Movie.find_by(id: params[:id])
         if movie
-          if can_access_movie?(movie)
-            render json: ::MovieSerializer.new(movie).serializable_hash, status: :ok
-          else
-            render json: { error: 'Access denied. Please upgrade your subscription.' }, status: :forbidden
-          end
+          render json: ::MovieSerializer.new(movie).serializable_hash, status: :ok
         else
           render json: { error: "Movie not found" }, status: :not_found
         end
@@ -52,6 +62,7 @@ module Api
         attach_files(movie)
 
         if movie.save
+          send_new_movie_notification(movie)
           render json: { message: "Movie added successfully", movie: ::MovieSerializer.new(movie).serializable_hash }, status: :created
         else
           render json: { errors: movie.errors.full_messages }, status: :unprocessable_entity
@@ -131,6 +142,24 @@ module Api
         else
           Rails.logger.info "Access granted: Premium subscription"
           true
+        end
+      end
+
+      def send_new_movie_notification(movie)
+        users = User.where(notifications_enabled: true).where.not(device_token: nil)
+        return if users.empty?
+        device_tokens = users.pluck(:device_token)
+        begin
+          fcm_service = FcmService.new
+          response = fcm_service.send_notification(device_tokens, "New Movie Added!", "#{movie.title} has been added to the Movie Explorer collection.", { movie_id: movie.id.to_s })
+          Rails.logger.info("FCM Response: #{response}")
+          if response[:status_code] == 200
+            Rails.logger.info("FCM Response: #{response}")
+          else
+            Rails.logger.error("FCM Error: #{response[:body]}")
+          end
+        rescue StandardError => e
+          Rails.logger.error("FCM Notification Failed: #{e.message}")
         end
       end
     end
