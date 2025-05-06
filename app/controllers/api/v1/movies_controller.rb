@@ -148,7 +148,8 @@ module Api
       def send_new_movie_notification(movie)
         users = User.where(notifications_enabled: true).where.not(device_token: nil)
         return if users.empty?
-        device_tokens = users.pluck(:device_token)
+        device_tokens = users.pluck(:device_token).map(&:to_s).reject(&:blank?).uniq
+        return if device_tokens.empty?
         begin
           fcm_service = FcmService.new
           response = fcm_service.send_notification(device_tokens, "New Movie Added!", "#{movie.title} has been added to the Movie Explorer collection.", { movie_id: movie.id.to_s })

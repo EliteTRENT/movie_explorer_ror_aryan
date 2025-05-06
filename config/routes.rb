@@ -6,7 +6,9 @@ Rails.application.routes.draw do
   devise_for :users, controllers: { sessions: 'users/sessions', registrations: "users/registrations" }
   namespace :api do
     namespace :v1 do
-      get 'current_user', to: 'users#current'
+      get 'current_user' => 'users#current'
+      post 'update_device_token' => 'users#update_device_token'
+      patch 'toggle_notifications' => 'users#toggle_notifications'
       resources :movies, only: [:index, :show, :create, :update, :destroy]
       resources :subscriptions, only: [:create] do
         collection do
@@ -15,6 +17,7 @@ Rails.application.routes.draw do
         end
       end
       post 'webhooks/stripe', to: 'webhooks#stripe'
+      get 'subscriptions/status', to: 'subscriptions#status'
     end
   end
 end

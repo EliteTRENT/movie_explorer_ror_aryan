@@ -30,7 +30,9 @@ gem 'rswag-ui'
 gem 'factory_bot_rails' 
 gem 'faker' 
 gem 'stripe'
-gem 'fcm'
+# gem 'fcm', '~> 1.0.8'
+gem 'googleauth'
+gem 'httparty'
 
 group :development, :test do
   gem "debug", platforms: %i[ mri windows ]

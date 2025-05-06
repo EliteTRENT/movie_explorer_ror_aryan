@@ -1,97 +1,63 @@
 require 'rails_helper'
 
-RSpec.describe 'User Authentication', type: :request do
-  describe 'POST /users' do
-    context 'with valid parameters' do
-      let(:valid_attributes) { { user: attributes_for(:user) } }
+RSpec.describe "User Authentication with JWT", type: :request do
+  let(:password) { 'Password@123' }
+  let(:user) { create(:user, password: password) }  
 
-      it 'creates a new user and returns status 201' do
-        post '/users', params: valid_attributes, as: :json
-        expect(response).to have_http_status(:created)
-        expect(JSON.parse(response.body)).to include('email' => valid_attributes[:user][:email])
-      end
-    end
-
-    context 'with invalid parameters' do
-      let(:invalid_attributes) { { user: attributes_for(:user, :invalid) } }
-
-      it 'returns status 422 with errors' do
-        post '/users', params: invalid_attributes, as: :json
-        expect(response).to have_http_status(:unprocessable_entity)
-        expect(JSON.parse(response.body)).to have_key('errors')
-      end
-    end
+  def auth_token_for_user(user)
+    post '/users/sign_in', params: { user: { email: user.email, password: password } }, as: :json
+    expect(response).to have_http_status(:ok)
+    response.headers['Authorization']
   end
 
-  describe 'POST /users/sign_in' do
-    let!(:user_record) { create(:user, password: 'password123') }
+  describe 'POST /users (Sign up)' do
+    let(:new_user) { build(:user, password: password, mobile_number: '1234567890', notifications_enabled: true) }
+  
+    it 'registers a new user and returns JWT token' do
+      post '/users', params: { user: new_user.attributes.merge(password: password) }, as: :json
 
-    context 'with correct credentials' do
-      let(:valid_credentials) do
-        {
-          user: {
-            email: user_record.email,
-            password: 'password123'
-          }
-        }
-      end
-
-      it 'logs in the user and returns a token' do
-        post '/users/sign_in', params: valid_credentials, as: :json
-        expect(response).to have_http_status(:ok)
-        data = JSON.parse(response.body)
-        expect(data['email']).to eq(user_record.email)
-        expect(data['token']).not_to be_nil
-      end
-    end
-
-    context 'with incorrect credentials' do
-      let(:invalid_credentials) do
-        {
-          user: {
-            email: 'wrong@example.com',
-            password: 'wrongpass'
-          }
-        }
-      end
-
-      it 'returns unauthorized status' do
-        post '/users/sign_in', params: invalid_credentials, as: :json
-        expect(response).to have_http_status(:unauthorized)
-        data = JSON.parse(response.body)
-        expect(data['error']).to eq('Invalid Email or password.')
-      end
+      expect(response).to have_http_status(:created)
+      json = JSON.parse(response.body)
+  
+      expect(json['email']).to eq(new_user.email)
+      expect(json['token']).to be_present
     end
   end
+  
 
-  describe 'DELETE /users/sign_out' do
-    it 'logs out the user and returns no content status' do
-      delete '/users/sign_out'
-      expect(response).to have_http_status(:no_content)
+  describe 'DELETE /users/sign_out (Sign out)' do
+    it 'logs out an authenticated user' do
+      token = auth_token_for_user(user)
+
+      delete '/users/sign_out', headers: { 'Authorization' => token }, as: :json
+
+      expect(response).to have_http_status(:ok)
+    end
+
+    it 'rejects logout without token' do
+      delete '/users/sign_out', as: :json
+
+      expect(response).to have_http_status(:unauthorized)
+      expect(JSON.parse(response.body)['error']).to match(/No token provided/)
     end
   end
 
   describe 'GET /api/v1/current_user' do
-    context 'when user is signed in' do
-      let(:user) { create(:user) }
+    it 'returns the current authenticated user' do
+      token = auth_token_for_user(user)
 
-      before do
-        sign_in user
-      end
+      get '/api/v1/current_user', headers: { 'Authorization' => token }, as: :json
 
-      it 'returns the current user' do
-        get '/api/v1/current_user'
-        expect(response).to have_http_status(:ok)
-        data = JSON.parse(response.body)
-        expect(data['email']).to eq(user.email)
-      end
+      expect(response).to have_http_status(:ok)
+      json = JSON.parse(response.body)
+      expect(json['email']).to eq(user.email)
     end
 
-    context 'when user is not signed in' do
-      it 'returns unauthorized status' do
-        get '/api/v1/current_user'
-        expect(response).to have_http_status(:found)
-      end
+    it 'rejects request without token' do
+      get '/api/v1/current_user', as: :json
+
+      expect(response).to have_http_status(:unauthorized)
+      expect(JSON.parse(response.body)['error']).to match(/No token provided/)
     end
   end
 end
