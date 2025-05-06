@@ -88,6 +88,45 @@ paths:
           description: User details returned
         '401':
           description: Unauthorized access
+  "/api/v1/toggle_notifications":
+    patch:
+      summary: Toggle user notification preference
+      tags:
+        - Users
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Notifications preference updated successfully
+        '401':
+          description: Unauthorized access
+        '422':
+          description: Invalid request
+  "/api/v1/update_device_token":
+    post:
+      summary: Update user device token
+      tags:
+        - Users
+      security:
+        - BearerAuth: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                device_token:
+                  type: string
+                  example: "abc123deviceToken"
+              required:
+                - device_token
+      responses:
+        '200':
+          description: Device token updated successfully
+        '401':
+          description: Unauthorized access
+        '422':
+          description: Invalid request
   "/api/v1/movies":
     get:
       summary: List movies
