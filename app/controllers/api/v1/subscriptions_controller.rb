@@ -24,14 +24,14 @@ class Api::V1::SubscriptionsController < ApplicationController
         user_id: @current_user.id,
         plan_type: plan_type
       },
-      success_url: "https://movie-explorer-app.onrender.com/api/v1/subscriptions/success?session_id={CHECKOUT_SESSION_ID}",
+      success_url: "http://localhost:5173/success?session_id={CHECKOUT_SESSION_ID}",
       cancel_url: "https://movie-explorer-app.onrender.com/api/v1/subscriptions/cancel"
     )
 
     render json: { session_id: session.id, url: session.url }, status: :ok
     return
   end
-
+  
   def success
     session = Stripe::Checkout::Session.retrieve(params[:session_id])
     subscription = Subscription.find_by(stripe_customer_id: session.customer)
@@ -69,7 +69,7 @@ class Api::V1::SubscriptionsController < ApplicationController
       subscription.update(plan_type: 'basic', status: 'active', expires_at: nil)
       render json: { plan_type: 'basic', message: 'Your subscription has expired. Downgrading to basic plan.' }, status: :ok
     else
-      render json: { plan_type: 'premium' }, status: :ok
+      render json: { plan_type: subscription.plan_type }, status: :ok
     end
   end
 
