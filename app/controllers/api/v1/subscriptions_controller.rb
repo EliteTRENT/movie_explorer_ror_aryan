@@ -24,8 +24,8 @@ class Api::V1::SubscriptionsController < ApplicationController
         user_id: @current_user.id,
         plan_type: plan_type
       },
-      success_url: "http://localhost:3000/api/v1/subscriptions/success?session_id={CHECKOUT_SESSION_ID}",
-      cancel_url: "http://localhost:3000/api/v1/subscriptions/cancel"
+      success_url: "https://movie-explorer-app.onrender.com/api/v1/subscriptions/success?session_id={CHECKOUT_SESSION_ID}",
+      cancel_url: "https://movie-explorer-app.onrender.com/api/v1/subscriptions/cancel"
     )
 
     render json: { session_id: session.id, url: session.url }, status: :ok
