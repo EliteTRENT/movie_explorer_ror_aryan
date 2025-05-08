@@ -43,7 +43,8 @@ ActiveAdmin.register_page "Dashboard" do
           ul do
             li "Total Subscriptions: #{Subscription.count}"
             li "Active Subscriptions: #{Subscription.where(status: 'active').count}"
-            li "Cancelled Subscriptions: #{Subscription.where(status: 'cancelled').count}"
+            li "Basic Subscriptions: #{Subscription.where(plan_type: 'basic').count}"
+            li "Premium Subscriptions: #{Subscription.where(plan_type: 'premium').count}"
           end
         end
       end

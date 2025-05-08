@@ -283,6 +283,64 @@ paths:
           description: Unauthorized
         '404':
           description: Movie not found
+  "/api/v1/subscriptions":
+    post:
+      summary: Create a subscription
+      tags:
+      - Subscriptions
+      security:
+      - BearerAuth: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                plan_type:
+                  type: string
+                  enum: ["1_day", "1_month", "3_months"]
+                  description: The type of subscription plan
+              required:
+              - plan_type
+        required: true
+      responses:
+        '200':
+          description: Subscription session created successfully
+        '400':
+          description: Invalid plan type
+        '401':
+          description: Unauthorized
+  "/api/v1/subscriptions/status":
+    get:
+      summary: Check subscription status
+      tags:
+      - Subscriptions
+      security:
+      - BearerAuth: []
+      responses:
+        '200':
+          description: Subscription status retrieved successfully
+        '401':
+          description: Unauthorized
+        '404':
+          description: No active subscription found
+  "/api/v1/subscriptions/success":
+    get:
+      summary: Handle successful subscription payment
+      tags:
+      - Subscriptions
+      parameters:
+      - name: session_id
+        in: query
+        description: Stripe checkout session ID
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Subscription updated successfully
+        '404':
+          description: Subscription not found
 servers:
 - url: http://localhost:3000
   description: Local server

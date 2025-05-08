@@ -1,4 +1,5 @@
 class Movie < ApplicationRecord
+  after_create :send_new_movie_notification
   has_one_attached :poster
   has_one_attached :banner
 
@@ -43,5 +44,24 @@ class Movie < ApplicationRecord
   
   def self.ransackable_attributes(auth_object = nil)
     %w[title genre release_year director duration description premium rating]
+  end
+
+  def send_new_movie_notification
+    users = User.where(notifications_enabled: true).where.not(device_token: nil)
+    return if users.empty?
+    device_tokens = users.pluck(:device_token).map(&:to_s).reject(&:blank?).uniq
+    return if device_tokens.empty?
+    begin
+      fcm_service = FcmService.new
+      response = fcm_service.send_notification(device_tokens, "New Movie Added!", "#{title} has been added to the Movie Explorer collection.", { movie_id: id.to_s })
+      Rails.logger.info("FCM Response: #{response}")
+      if response[:status_code] == 200
+        Rails.logger.info("FCM Response: #{response}")
+      else
+        Rails.logger.error("FCM Error: #{response[:body]}")
+      end
+    rescue StandardError => e
+      Rails.logger.error("FCM Notification Failed: #{e.message}")
+    end
   end
 end
