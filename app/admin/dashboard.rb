@@ -36,6 +36,17 @@ ActiveAdmin.register_page "Dashboard" do
           end
         end
       end
+
+      # Subscription Statistics
+      column do
+        panel "Subscription Statistics" do
+          ul do
+            li "Total Subscriptions: #{Subscription.count}"
+            li "Active Subscriptions: #{Subscription.where(status: 'active').count}"
+            li "Cancelled Subscriptions: #{Subscription.where(status: 'cancelled').count}"
+          end
+        end
+      end
     end
   end
 end

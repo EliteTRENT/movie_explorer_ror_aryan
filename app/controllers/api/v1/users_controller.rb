@@ -9,10 +9,15 @@ module Api
       end
 
       def update_device_token
-        if @current_user.update(device_token: device_token_params[:device_token])
-          render json: { message: "Device token updated successfully" }, status: :ok
+        device_token = params[:device_token] 
+        unless device_token.present?
+          render json: { error: 'Device token is required' }, status: :bad_request
+          return
+        end
+        if @current_user.update(device_token: device_token)
+          render json: { message: 'Device token updated successfully' }, status: :ok
         else
-          render json: { errors: @current_user.errors.full_messages }, status: :unprocessable_entity
+          render json: { error: 'Failed to update device token', errors: @current_user.errors.full_messages }, status: :unprocessable_entity
         end
       end
 

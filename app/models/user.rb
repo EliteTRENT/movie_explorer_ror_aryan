@@ -22,7 +22,7 @@ class User < ApplicationRecord
   end
 
   def self.ransackable_attributes(auth_object = nil)
-    ["created_at", "email", "id", "name", "mobile_number", "role", "updated_at", "notifications_enabled"]
+    ["created_at", "email", "id", "name", "mobile_number", "role", "updated_at", "notifications_enabled", "device_token"]
   end
 
   def self.ransackable_associations(auth_object = nil)
