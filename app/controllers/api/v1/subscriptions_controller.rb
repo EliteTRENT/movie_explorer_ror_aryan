@@ -1,5 +1,6 @@
 class Api::V1::SubscriptionsController < ApplicationController
-  before_action :authenticate_user!, except: [:success]
+  before_action :authenticate_user!, except: [:success, :cancel]
+  before_action :ensure_supervisor, only: [:index]
   skip_before_action :verify_authenticity_token
 
   def create
@@ -26,7 +27,7 @@ class Api::V1::SubscriptionsController < ApplicationController
       },
       success_url: "http://localhost:5173/success?session_id={CHECKOUT_SESSION_ID}",
       # success_url: "http://localhost:3000/api/v1/subscriptions/success?session_id={CHECKOUT_SESSION_ID}",
-      cancel_url: "https://movie-explorer-app.onrender.com/api/v1/subscriptions/cancel"
+      cancel_url: "http://localhost:3000/api/v1/subscriptions/cancel"
     )
 
     render json: { session_id: session.id, url: session.url }, status: :ok
@@ -75,20 +76,8 @@ class Api::V1::SubscriptionsController < ApplicationController
   end
 
   def index
-    subscription = @current_user.subscription
-    render json: { subscription: subscription }, status: :ok
-  end
-
-  # def index
-  #   subscription = @current_user.subscription
-  #   if subscription.plan_type == 'premium' && subscription.expires_at.present? && subscription.expires_at < Time.current
-  #     subscription.update(plan_type: 'basic', status: 'active', expires_at: nil)
-  #   end
-  #   render json: { subscriptions: subscription }, status: :ok
-  # end
-
-  def show
-    render json: { subscription: @subscription }, status: :ok
+    subscriptions = Subscription.all
+    render json: { subscriptions: subscriptions }, status: :ok
   end
 end
 

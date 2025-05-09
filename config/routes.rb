@@ -10,8 +10,7 @@ Rails.application.routes.draw do
       post 'update_device_token' => 'users#update_device_token'
       patch 'toggle_notifications' => 'users#toggle_notifications'
       resources :movies, only: [:index, :show, :create, :update, :destroy]
-      resources :subscriptions, only: [:create]
-      # post 'webhooks/stripe', to: 'webhooks#stripe'
+      resources :subscriptions, only: [:create, :index]
       get 'subscriptions/status', to: 'subscriptions#status'
       get 'subscriptions/success', to: 'subscriptions#success'
       get 'subscriptions/cancel', to: 'subscriptions#cancel'

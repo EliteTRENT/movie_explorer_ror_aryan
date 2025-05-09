@@ -5,7 +5,7 @@ class Movie < ApplicationRecord
 
   validates :title, presence: true
   validates :genre, presence: true
-  validates :release_year, numericality: { only_integer: true, greater_than: 1880, less_than_or_equal_to: Date.current.year + 1 }
+  validates :release_year, numericality: { only_integer: true, greater_than: 1880, less_than_or_equal_to: Date.current.year }
   validates :rating, numericality: { greater_than_or_equal_to: 0, less_than_or_equal_to: 10 }, allow_nil: true
   validates :director, presence: true
   validates :duration, numericality: { only_integer: true, greater_than: 0 }
@@ -14,7 +14,7 @@ class Movie < ApplicationRecord
   validate :banner_content_type, if: :banner_attached?
 
   scope :premium, -> { where(premium: true) }
-  scope :accessible_to_user, ->(user) { user&.premium_access ? all : where(premium: false) }
+  scope :accessible_to_user, ->(user) { user&.subscription&.plan_type == 'premium'  ? all : where(premium: false) }
 
   def poster_attached?
     poster.attached?
@@ -54,14 +54,9 @@ class Movie < ApplicationRecord
     begin
       fcm_service = FcmService.new
       response = fcm_service.send_notification(device_tokens, "New Movie Added!", "#{title} has been added to the Movie Explorer collection.", { movie_id: id.to_s })
-      Rails.logger.info("FCM Response: #{response}")
-      if response[:status_code] == 200
-        Rails.logger.info("FCM Response: #{response}")
-      else
-        Rails.logger.error("FCM Error: #{response[:body]}")
-      end
+      return { status: 'error', message: response[:body] } if response[:status_code] != 200
     rescue StandardError => e
-      Rails.logger.error("FCM Notification Failed: #{e.message}")
+      return { status: 'error', message: "FCM Notification Failed: #{e.message}" }
     end
   end
 end

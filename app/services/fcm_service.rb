@@ -7,13 +7,7 @@ class FcmService
   def initialize
     @credentials = Rails.application.credentials.fcm[:service_account]
     raise 'FCM service account credentials not found' if @credentials.nil?
-
-    # Convert credentials to JSON string for Google Auth
     json_string = @credentials.to_json
-
-    Rails.logger.info("FCM JSON (first 100 chars): #{json_string[0..100]}...")
-
-    # Initialize Google Auth credentials
     @authorizer = Google::Auth::ServiceAccountCredentials.make_creds(
       json_key_io: StringIO.new(json_string),
       scope: 'https://www.googleapis.com/auth/firebase.messaging'
@@ -47,12 +41,7 @@ class FcmService
           data: data.transform_values(&:to_s)
         }
       }
-
-      Rails.logger.info("Sending FCM to #{token[0..20]}... payload: #{payload.inspect}")
-
       response = HTTParty.post(url, body: payload.to_json, headers: headers)
-      Rails.logger.info("FCM Response: #{response.inspect}")
-
       { status_code: response.code, body: response.body }
     end
 
@@ -62,7 +51,6 @@ class FcmService
       response: responses
     }
   rescue StandardError => e
-    Rails.logger.error("FCM Error: #{e.message}\n#{e.backtrace.join("\n")}")
     { status_code: 500, body: e.message }
   end
 
