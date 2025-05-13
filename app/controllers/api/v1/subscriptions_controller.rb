@@ -10,7 +10,9 @@ class Api::V1::SubscriptionsController < ApplicationController
       subscription.update!(stripe_customer_id: customer.id)
     end
     plan_type = params[:plan_type]
+    platform = params[:platform] || 'web'
     return render json: { error: 'Invalid plan type' }, status: :bad_request unless %w[1_day 1_month 3_months].include?(plan_type)
+    return render json: { error: 'Invalid platform' }, status: :bad_request unless %w[web mobile].include?(platform)
     price_id = case plan_type
                when '1_day'
                  'price_1RLNECI2rCWiq8PAl1HzFK1S'
@@ -20,6 +22,12 @@ class Api::V1::SubscriptionsController < ApplicationController
                  'price_1RLNGGI2rCWiq8PA7voLRWH6'
                end
 
+    success_url = if platform == 'web'
+                    "http://localhost:5173/success?session_id={CHECKOUT_SESSION_ID}"
+                  else
+                    "https://movie-explorer-app.onrender.com/api/v1/subscriptions/success?session_id={CHECKOUT_SESSION_ID}"
+                  end
+
     session = Stripe::Checkout::Session.create(
       customer: subscription.stripe_customer_id,
       payment_method_types: ['card'],
@@ -27,10 +35,10 @@ class Api::V1::SubscriptionsController < ApplicationController
       mode: 'payment',
       metadata: {
         user_id: @current_user.id,
-        plan_type: plan_type
+        plan_type: plan_type,
+        platform: platform
       },
-      success_url: "http://localhost:5173/success?session_id={CHECKOUT_SESSION_ID}",
-      # success_url: "http://localhost:3000/api/v1/subscriptions/success?session_id={CHECKOUT_SESSION_ID}",
+      success_url: success_url,
       cancel_url: "http://localhost:3000/api/v1/subscriptions/cancel"
     )
 
@@ -53,7 +61,9 @@ class Api::V1::SubscriptionsController < ApplicationController
           3.months.from_now
         end
       subscription.update(stripe_subscription_id: session.subscription, plan_type: 'premium', status: 'active', expires_at: expires_at)
-      render json: { message: 'Subscription updated successfully' }, status: :ok
+      platform = session.metadata.platform || 'web'
+      message = platform == 'web' ? 'Subscription updated successfully' : 'Subscription confirmed'
+      render json: { message: message }, status: :ok
     else
       render json: { error: 'Subscription not found' }, status: :not_found
     end
