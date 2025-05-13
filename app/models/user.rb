@@ -11,7 +11,7 @@ class User < ApplicationRecord
   validates :mobile_number, presence: true, format: { with: /\A(\+?[1-9]\d{0,3})?\d{9,14}\z/ }, uniqueness: true
   validates :email, format: { with: URI::MailTo::EMAIL_REGEXP }
   validates :notifications_enabled, inclusion: { in: [true, false] }
-  validates :password, format: { with: /\A(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}\z/, message: "must include at least one uppercase letter, one lowercase letter, one digit, and one special character" }, if: :password_present?
+  validates :password, format: { with: /\A(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}\z/, message: "The password must include at least one uppercase letter, one lowercase letter, one digit, one special character, and have a minimum of 8 characters." }, if: :password_present?
   validates :jti, uniqueness: true
 
   scope :by_role, ->(role) { where(role: role) }
