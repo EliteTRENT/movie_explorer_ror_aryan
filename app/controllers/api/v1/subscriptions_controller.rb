@@ -6,8 +6,12 @@ class Api::V1::SubscriptionsController < ApplicationController
   def create
     subscription = @current_user.subscription
     if subscription.stripe_customer_id.blank?
-      customer = Stripe::Customer.create(email: @current_user.email)
-      subscription.update!(stripe_customer_id: customer.id)
+      begin
+        customer = Stripe::Customer.create(email: @current_user.email)
+        subscription.update!(stripe_customer_id: customer.id)
+      rescue StripeError => e
+        return render json: { error: 'Failed to create Stripe customer' }, status: :unprocessable_entity
+      end
     end
     plan_type = params[:plan_type]
     platform = params[:platform] || 'web'

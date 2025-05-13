@@ -40,7 +40,6 @@ class FcmService
       }
       response = HTTParty.post(url, body: payload.to_json, headers: headers)
       parsed_body = parse_response(response)
-      Rails.logger.info "FCM response for token #{token}: #{parsed_body}"
       {
         token: token,
         status_code: response.code,
@@ -49,9 +48,6 @@ class FcmService
     end
 
     invalid_tokens = responses.select { |r| r[:body]['error']&.dig('code') == 400 }.map { |r| r[:token] }
-    if invalid_tokens.any?
-      Rails.logger.warn "Invalid FCM tokens detected: #{invalid_tokens}"
-    end
 
     {
       status_code: responses.all? { |r| r[:status_code] == 200 } ? 200 : (invalid_tokens.any? ? 400 : 500),
@@ -59,7 +55,6 @@ class FcmService
       invalid_tokens: invalid_tokens
     }
   rescue StandardError => e
-    Rails.logger.error "FCM Service Error: #{e.message}"
     { status_code: 500, body: [{ error: e.message }], invalid_tokens: [] }
   end
 

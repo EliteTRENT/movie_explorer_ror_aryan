@@ -51,12 +51,10 @@ module Api
           else
             if response[:invalid_tokens].any?
               User.where(device_token: response[:invalid_tokens]).update_all(device_token: nil)
-              Rails.logger.info "Cleared invalid tokens: #{response[:invalid_tokens]}"
             end
             render json: { error: 'Could not send notification to some devices', details: response[:body] }, status: :unprocessable_entity
           end
         rescue StandardError => e
-          Rails.logger.error "FCM Notification Failed: #{e.message}"
           render json: { error: 'FCM Notification Failed', details: e.message }, status: :unprocessable_entity
         end
       end
