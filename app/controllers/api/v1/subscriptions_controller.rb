@@ -5,7 +5,10 @@ class Api::V1::SubscriptionsController < ApplicationController
 
   def create
     subscription = @current_user.subscription
-    Stripe::Customer.create(email: @current_user.email)
+    if subscription.stripe_customer_id.blank?
+      customer = Stripe::Customer.create(email: @current_user.email)
+      subscription.update!(stripe_customer_id: customer.id)
+    end
     plan_type = params[:plan_type]
     return render json: { error: 'Invalid plan type' }, status: :bad_request unless %w[1_day 1_month 3_months].include?(plan_type)
     price_id = case plan_type
