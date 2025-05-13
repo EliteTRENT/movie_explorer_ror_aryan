@@ -33,6 +33,10 @@ gem 'stripe'
 # gem 'fcm', '~> 1.0.8'
 gem 'googleauth'
 gem 'httparty'
+gem 'drb', '~> 2.2.1'
+gem 'irb', '~> 1.15.2'
+gem 'stringio', '~> 3.1.7'
+gem 'simplecov'
 
 group :development, :test do
   gem "debug", platforms: %i[ mri windows ]

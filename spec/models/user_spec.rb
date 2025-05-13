@@ -152,7 +152,7 @@ RSpec.describe User, type: :model do
 
   describe "ransackable attributes and associations" do
     it "defines ransackable attributes" do
-      expect(User.ransackable_attributes).to match_array(["created_at", "email", "id", "name", "mobile_number", "role", "updated_at", "notifications_enabled"])
+      expect(User.ransackable_attributes).to match_array(["created_at", "email", "id", "name", "mobile_number", "role", "updated_at", "notifications_enabled", "device_token"])
     end
 
     it "defines ransackable associations" do

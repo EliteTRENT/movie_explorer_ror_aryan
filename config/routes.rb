@@ -9,6 +9,7 @@ Rails.application.routes.draw do
       get 'current_user' => 'users#current'
       post 'update_device_token' => 'users#update_device_token'
       patch 'toggle_notifications' => 'users#toggle_notifications'
+      post 'notifications/test' => 'users#notifications_test'
       resources :movies, only: [:index, :show, :create, :update, :destroy]
       resources :subscriptions, only: [:create, :index]
       get 'subscriptions/status', to: 'subscriptions#status'

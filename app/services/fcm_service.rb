@@ -15,11 +15,8 @@ class FcmService
   end
 
   def send_notification(device_tokens, title, body, data = {})
-    tokens = Array(device_tokens).map(&:to_s).reject do |token|
-      token.strip.empty? || token.include?('test')
-    end
-
-    return { status_code: 200, body: 'No valid device tokens' } if tokens.empty?
+    tokens = Array(device_tokens).map(&:to_s).reject { |token| token.strip.empty? }
+    return { status_code: 200, body: [{ message: 'No valid device tokens' }], tokens: [] } if tokens.empty?
 
     access_token = authorizer.fetch_access_token!['access_token']
     raise 'Failed to fetch access token' if access_token.nil? || access_token.empty?
@@ -42,19 +39,38 @@ class FcmService
         }
       }
       response = HTTParty.post(url, body: payload.to_json, headers: headers)
-      { status_code: response.code, body: response.body }
+      parsed_body = parse_response(response)
+      Rails.logger.info "FCM response for token #{token}: #{parsed_body}"
+      {
+        token: token,
+        status_code: response.code,
+        body: parsed_body
+      }
+    end
+
+    invalid_tokens = responses.select { |r| r[:body]['error']&.dig('code') == 400 }.map { |r| r[:token] }
+    if invalid_tokens.any?
+      Rails.logger.warn "Invalid FCM tokens detected: #{invalid_tokens}"
     end
 
     {
-      status_code: responses.all? { |r| r[:status_code].to_i == 200 } ? 200 : 500,
-      body: responses.map { |r| r[:body] || 'No response body' }.join('; '),
-      response: responses
+      status_code: responses.all? { |r| r[:status_code] == 200 } ? 200 : (invalid_tokens.any? ? 400 : 500),
+      body: responses,
+      invalid_tokens: invalid_tokens
     }
   rescue StandardError => e
-    { status_code: 500, body: e.message }
+    Rails.logger.error "FCM Service Error: #{e.message}"
+    { status_code: 500, body: [{ error: e.message }], invalid_tokens: [] }
   end
 
   private
+
+  def parse_response(response)
+    return { error: 'No response body' } unless response.body
+    JSON.parse(response.body)
+  rescue JSON::ParserError
+    { error: response.body }
+  end
 
   attr_reader :authorizer
 end

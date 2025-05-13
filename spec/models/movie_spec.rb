@@ -28,10 +28,10 @@ RSpec.describe Movie, type: :model do
       expect(movie.errors[:release_year]).to include("must be greater than 1880")
     end
 
-    it "is not valid with a future release year beyond next year" do
-      movie.release_year = Date.current.year + 2
+    it "is not valid with a release year beyond the current year" do
+      movie = build(:movie, release_year: Date.current.year + 2)
       expect(movie).not_to be_valid
-      expect(movie.errors[:release_year]).to include("must be less than or equal to #{Date.current.year + 1}")
+      expect(movie.errors[:release_year]).to include("must be less than or equal to #{Date.current.year}")
     end
 
     it "is valid with a rating within range" do

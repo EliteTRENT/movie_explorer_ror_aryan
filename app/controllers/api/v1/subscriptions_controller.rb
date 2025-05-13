@@ -6,6 +6,7 @@ class Api::V1::SubscriptionsController < ApplicationController
   def create
     subscription = @current_user.subscription
     plan_type = params[:plan_type]
+    platform = params[:platform]
     return render json: { error: 'Invalid plan type' }, status: :bad_request unless %w[1_day 1_month 3_months].include?(plan_type)
     price_id = case plan_type
                when '1_day'
@@ -16,6 +17,15 @@ class Api::V1::SubscriptionsController < ApplicationController
                  'price_1RLNGGI2rCWiq8PA7voLRWH6'
                end
 
+    if platform == 'mobile'
+      success_url = 'https://movie-explorer-app.onrender.com/api/v1/subscriptions/success?session_id={CHECKOUT_SESSION_ID}&platform=mobile'
+      cancel_url = 'https://movie-explorer-app.onrender.com/api/v1/subscriptions/cancel?platform=mobile'
+    else
+      success_url = "http://localhost:5173/success?session_id={CHECKOUT_SESSION_ID}"
+      # success_url: "http://localhost:3000/api/v1/subscriptions/success?session_id={CHECKOUT_SESSION_ID}",
+      cancel_url = "http://localhost:3000/api/v1/subscriptions/cancel"
+    end
+
     session = Stripe::Checkout::Session.create(
       customer: subscription.stripe_customer_id,
       payment_method_types: ['card'],
@@ -25,9 +35,8 @@ class Api::V1::SubscriptionsController < ApplicationController
         user_id: @current_user.id,
         plan_type: plan_type
       },
-      success_url: "http://localhost:5173/success?session_id={CHECKOUT_SESSION_ID}",
-      # success_url: "http://localhost:3000/api/v1/subscriptions/success?session_id={CHECKOUT_SESSION_ID}",
-      cancel_url: "http://localhost:3000/api/v1/subscriptions/cancel"
+      success_url: success_url,
+      cancel_url: cancel_url
     )
 
     render json: { session_id: session.id, url: session.url }, status: :ok
@@ -37,7 +46,7 @@ class Api::V1::SubscriptionsController < ApplicationController
   def success
     session = Stripe::Checkout::Session.retrieve(params[:session_id])
     subscription = Subscription.find_by(stripe_customer_id: session.customer)
-  
+    Rails.logger.info("Stripe Session Customer ID: #{session.customer}")
     if subscription
       plan_type = session.metadata.plan_type
       expires_at = case plan_type
@@ -49,14 +58,26 @@ class Api::V1::SubscriptionsController < ApplicationController
           3.months.from_now
         end
       subscription.update(stripe_subscription_id: session.subscription, plan_type: 'premium', status: 'active', expires_at: expires_at)
-      render json: { message: 'Subscription updated successfully' }, status: :ok
+      if params[:platform] == 'mobile'
+        redirect_to "movieexplorer://payment-success?session_id=#{params[:session_id]}", allow_other_host: true
+      else
+        render json: { message: 'Subscription updated successfully' }, status: :ok
+      end
     else
-      render json: { error: 'Subscription not found' }, status: :not_found
+      if params[:platform] == 'mobile'
+        redirect_to "movieexplorer://payment-cancel", allow_other_host: true
+      else
+        render json: { error: 'Subscription not found' }, status: :not_found
+      end
     end
   end
 
   def cancel
-    render json: { message: 'Payment cancelled' }, status: :ok
+    if params[:platform] == 'mobile'
+      redirect_to "movieexplorer://payment-cancel", allow_other_host: true
+    else
+      render json: { message: 'Payment cancelled' }, status: :ok
+    end
   end
 
   def status
