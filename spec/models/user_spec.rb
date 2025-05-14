@@ -68,7 +68,7 @@ RSpec.describe User, type: :model do
     it "is not valid with a password that doesn't meet complexity requirements" do
       user.password = "simple"
       expect(user).not_to be_valid
-      expect(user.errors[:password]).to include("must include at least one uppercase letter, one lowercase letter, one digit, and one special character")
+      expect(user.errors[:password]).to include("The password must include at least one uppercase letter, one lowercase letter, one digit, one special character, and have a minimum of 8 characters.")
     end
 
     it "is not valid without a password on creation" do

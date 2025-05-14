@@ -27,9 +27,9 @@ class Api::V1::SubscriptionsController < ApplicationController
                end
 
     success_url = if platform == 'web'
-                    'http://localhost:5173/success?session_id={CHECKOUT_SESSION_ID}'
+                    "#{ENV['WEB_SUCCESS_URL']}?session_id={CHECKOUT_SESSION_ID}"
                   else
-                    'https://movie-explorer-app.onrender.com/api/v1/subscriptions/success?session_id={CHECKOUT_SESSION_ID}'
+                    "#{ENV['MOBILE_SUCCESS_URL']}?session_id={CHECKOUT_SESSION_ID}"
                   end
 
     session = Stripe::Checkout::Session.create(
