@@ -709,6 +709,67 @@ paths:
                 success:
                   value:
                     message: "Payment cancelled"
+  /api/v1/notifications/test:
+    post:
+      summary: Send a test notification to users with enabled notifications and valid device tokens
+      tags:
+        - Users
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                message:
+                  type: string
+                  description: The message content for the test notification. Defaults to 'Test Notification from Movie Explorer' if not provided.
+                  example: "This is a custom test notification!"
+      responses:
+        '200':
+          description: Notification sent successfully or no eligible users/tokens found
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - type: object
+                    properties:
+                      message:
+                        type: string
+                        example: Notification sent successfully
+                      results:
+                        type: object
+                        description: The response body from the FCM service
+                    required:
+                      - message
+                      - results
+                  - type: object
+                    properties:
+                      message:
+                        type: string
+                        enum:
+                          - No eligible users for notifications
+                          - No valid device tokens
+                        example: No eligible users for notifications
+                    required:
+                      - message
+        '422':
+          description: Failed to send notification to some devices or FCM service error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Could not send notification to some devices
+                  details:
+                    type: object
+                    description: Details of the error or FCM response body
+                required:
+                  - error
+                  - details
+      security: []
 servers:
 - url: http://localhost:3000
   description: Local server
@@ -720,3 +781,4 @@ components:
       type: http
       scheme: bearer
       bearerFormat: JWT
+  
