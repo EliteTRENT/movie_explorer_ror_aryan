@@ -19,11 +19,11 @@ class Api::V1::SubscriptionsController < ApplicationController
     return render json: { error: 'Invalid platform' }, status: :bad_request unless %w[web mobile].include?(platform)
     price_id = case plan_type
                when '1_day'
-                 ENV['1_DAY_PRICE_ID']
+                 ENV['ONE_DAY_PRICE_ID']
                when '1_month'
-                 ENV['1_MONTH_PRICE_ID']
+                 ENV['ONE_MONTH_PRICE_ID']
                when '3_months'
-                 ENV['3_MONTHS_PRICE_ID']
+                 ENV['THREE_MONTHS_PRICE_ID']
                end
 
     success_url = if platform == 'web'
