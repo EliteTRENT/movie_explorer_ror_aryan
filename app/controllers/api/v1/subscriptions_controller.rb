@@ -19,17 +19,17 @@ class Api::V1::SubscriptionsController < ApplicationController
     return render json: { error: 'Invalid platform' }, status: :bad_request unless %w[web mobile].include?(platform)
     price_id = case plan_type
                when '1_day'
-                 'price_1RLNECI2rCWiq8PAl1HzFK1S'
+                 ENV['1_DAY_PRICE_ID']
                when '1_month'
-                 'price_1RLNFaI2rCWiq8PAiYl6RAAi'
+                 ENV['1_MONTH_PRICE_ID']
                when '3_months'
-                 'price_1RLNGGI2rCWiq8PA7voLRWH6'
+                 ENV['3_MONTHS_PRICE_ID']
                end
 
     success_url = if platform == 'web'
-                    "http://localhost:5173/success?session_id={CHECKOUT_SESSION_ID}"
+                    'http://localhost:5173/success?session_id={CHECKOUT_SESSION_ID}'
                   else
-                    "https://movie-explorer-app.onrender.com/api/v1/subscriptions/success?session_id={CHECKOUT_SESSION_ID}"
+                    'https://movie-explorer-app.onrender.com/api/v1/subscriptions/success?session_id={CHECKOUT_SESSION_ID}'
                   end
 
     session = Stripe::Checkout::Session.create(
