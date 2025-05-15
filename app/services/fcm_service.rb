@@ -19,7 +19,7 @@ class FcmService
     return { status_code: 200, body: [{ message: 'No valid device tokens' }], tokens: [] } if tokens.empty?
 
     access_token = authorizer.fetch_access_token!['access_token']
-    raise 'Failed to fetch access token' if access_token.nil? || access_token.empty?
+    raise 'Failed to fetch access token' if access_token.nil? || access_token.empty? 
 
     url = "https://fcm.googleapis.com/v1/projects/#{@credentials[:project_id]}/messages:send"
     headers = {
