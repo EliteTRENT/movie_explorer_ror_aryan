@@ -2,7 +2,7 @@ FactoryBot.define do
   factory :movie do
     title { Faker::Movie.title[0...100] }
     genre { %w[Action Comedy Drama Thriller Sci-Fi].sample }
-    release_year { Faker::Number.between(from: 1881, to: Date.current.year + 1) }
+    release_year { Faker::Number.between(from: 1881, to: Date.current.year) }
     rating { Faker::Number.between(from: 0, to: 10) }
     director { Faker::Name.name }
     duration { Faker::Number.between(from: 60, to: 240) }

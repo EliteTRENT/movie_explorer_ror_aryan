@@ -3,6 +3,10 @@ SimpleCov.start 'rails' do
   add_filter '/spec/'          # Ignore test files
   add_filter '/config/'        # Ignore config files
   add_filter '/vendor/'        # Ignore vendor files
+  add_filter '/app/admin/'   
+  add_filter '/app/jobs/'
+  add_filter '/app/mailers/'
+  add_filter '/app/channels/'           
   minimum_coverage 90          # Warn if coverage <90%
 end
 # This file is copied to spec/ when you run 'rails generate rspec:install'

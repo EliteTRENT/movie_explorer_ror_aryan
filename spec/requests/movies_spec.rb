@@ -67,7 +67,8 @@ RSpec.describe 'Movies API', type: :request do
   end
 
   describe 'GET /api/v1/movies/:id' do
-    let!(:movie) { create(:movie) }
+    let!(:movie) { create(:movie, premium: true) }
+    let!(:subscription) { create(:subscription, user: user, plan_type: 'basic') }
 
     context 'with valid id' do
       it 'returns not found due to access restrictions' do
