@@ -31,6 +31,12 @@ class Api::V1::SubscriptionsController < ApplicationController
                   else
                     "#{ENV['MOBILE_SUCCESS_URL']}?session_id={CHECKOUT_SESSION_ID}"
                   end
+    
+    cancel_url = if platform == 'web'
+                    "#{ENV['WEB_CANCEL_URL']}"
+                 else
+                    "#{ENV['MOBILE_CANCEL_URL']}"
+                 end
 
     session = Stripe::Checkout::Session.create(
       customer: subscription.stripe_customer_id,
@@ -43,7 +49,7 @@ class Api::V1::SubscriptionsController < ApplicationController
         platform: platform
       },
       success_url: success_url,
-      cancel_url: "http://localhost:3000/api/v1/subscriptions/cancel"
+      cancel_url: cancel_url
     )
 
     render json: { session_id: session.id, url: session.url }, status: :ok
