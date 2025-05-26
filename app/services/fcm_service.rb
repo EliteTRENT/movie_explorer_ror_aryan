@@ -35,7 +35,7 @@ class FcmService
             title: title.to_s,
             body: body.to_s
           },
-          data: data.transform_values(&:to_s)
+          data: data.merge(banner_url: data[:banner_url]&.to_s).transform_values(&:to_s)
         }
       }
       response = HTTParty.post(url, body: payload.to_json, headers: headers)

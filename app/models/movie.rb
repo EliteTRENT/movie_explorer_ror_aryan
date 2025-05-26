@@ -53,9 +53,16 @@ class Movie < ApplicationRecord
     return if device_tokens.empty?
     begin
       fcm_service = FcmService.new
-      response = fcm_service.send_notification(device_tokens, "New Movie Added!", "#{title} has been added to the Movie Explorer collection.", { movie_id: id.to_s })
-      return { status: 'error', message: response[:body] } if response[:status_code] != 200
+      banner_url = banner_attached? ? banner.url : nil
+      response = fcm_service.send_notification(device_tokens, "New Movie Added!", "#{title} has been added to the Movie Explorer collection.", { movie_id: id.to_s, banner_url: banner_url})
+      if response[:status_code] != 200
+        Rails.logger.error("FCM notification failed: #{response[:body]}")
+        return { status: 'error', message: response[:body], invalid_tokens: response[:invalid_tokens] }
+      end
+      Rails.logger.info("FCM notification sent successfully for movie #{id}")
+      { status: 'success', message: 'Notification sent successfully' }
     rescue StandardError => e
+      Rails.logger.error("FCM notification error: #{e.message}")
       return { status: 'error', message: "FCM Notification Failed: #{e.message}" }
     end
   end
